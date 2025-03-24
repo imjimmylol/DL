@@ -1,0 +1,5 @@
+\.venv
+\.conda
+\sshkey
+\data
+\runs

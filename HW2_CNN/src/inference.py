@@ -21,7 +21,8 @@ def get_args():
 def pred_output_t_mask(output):
     outputs_resized = F.interpolate(output, size=(256, 256), mode='bilinear', align_corners=False)
     outputs_prob = torch.sigmoid(outputs_resized)
-    pred_mask = (outputs_prob > 0.5).float().cpu().numpy().squeeze()
+    # pred_mask = (outputs_prob > 0.5).float().cpu().numpy().squeeze()
+    pred_mask = (outputs_prob > 0.5).float()
     return pred_mask
 
 

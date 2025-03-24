@@ -3,19 +3,12 @@ import matplotlib.pyplot as plt
 
 from torch.utils.tensorboard import SummaryWriter
 
-def soft_dice_loss(pred, target, smooth=1e-5):
-    # If pred are logits, convert them to probabilities
-    # pred = torch.sigmoid(pred)
-    
-    # Compute intersection and union
-    # print(type(pred), type(target))
-    intersection = (pred * target).sum()
-    union = pred.sum() + target.sum()
-    
-    # Compute Dice coefficient and convert to loss
-    dice = (2 * intersection + smooth) / (union + smooth)
-    loss = 1 - dice
-    return loss, dice
+def soft_dice_loss(preds, targets, eps=1e-6):
+    # Assuming shape (B, 1, H, W)
+    intersection = (preds * targets).sum(dim=(1, 2, 3))
+    union = preds.sum(dim=(1, 2, 3)) + targets.sum(dim=(1, 2, 3))
+    dice = (2 * intersection + eps) / (union + eps)
+    return 1 - dice.mean(), dice.mean()
 
 
 

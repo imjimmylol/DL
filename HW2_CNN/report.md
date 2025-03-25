@@ -1,7 +1,7 @@
 
 # 報告簡報模板
 
-## 1. Implementation Details (30%)
+## 1. Implementation Details
 ### 1.1 Model Specification and Structure
 - **UNet**  
   - Follows the original design by the authors, without adding any BatchNormalization layers.  
@@ -42,25 +42,34 @@
 - Training Settings:
     - `--resume` : resume the assigned checkpoint
     - `--runame` : To specify run name for tensorboard visulization comparison with different model
-    - if `resume` is assigned, change run name i
 
-### 重要設計選擇與理由
-- Loss function、optimizer、learning rate 等設定
-- 模組之間如何協作
+
+### 1.3 Importance Setting & reason 
+
+- Loss function : `BCE Loss`
+    - use this loss because the learning goal of binary segmentation is to assign each pixel in the image a label: foreground (1) or background (0).
+
+- Model uutput : if size different then use `interpooling` to adjust size
+    - for simplification and reducing the parameters 
+- optimizer : `Adam`
+- Learning rate : at default
+- Learning rate schedular : only used in `RES_Unet` \
+    since when inspeculating the training process using tensorboard, I found out a simulary loss of gradinet as the original RESnet paper, to solve this issue, I try to apply this learning rate schedular
 
 ---
 
 ## 2. Data Preprocessing (25%)
-### 原始資料介紹
-- 資料來源與基本統計資訊
-- 資料異常或缺失情況說明
 
-### 資料清理與增強方法
-- 使用的清理、轉換、增強技術（例：Normalization、Data Augmentation）
+### Data Cleaning and Augmentation
+    - With Transform : apply the following  
+        - Normalization : `min max scalr`
+        - Augmentation: `RandomHorizontalFlip`, `RandomRotation90`
+    - No Transform : reamined the data unchanged
 
-### 特別之處 / 創新點
-- 與標準方法的差異
-- 額外分析或 insight
+### Insights
+    -  The RESUnet performs better when augmentation is applied, which is not the case for Unet
+    
+    -  The Unet 
 
 ---
 

@@ -1,6 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
-
+import os
 from torch.utils.tensorboard import SummaryWriter
 
 def soft_dice_loss(preds, targets, eps=1e-6):
@@ -10,11 +10,6 @@ def soft_dice_loss(preds, targets, eps=1e-6):
     dice = (2 * intersection + eps) / (union + eps)
     return 1 - dice.mean(), dice.mean()
 
-
-
-import os
-import matplotlib.pyplot as plt
-from torch.utils.tensorboard import SummaryWriter
 
 class TensorboardLogger:
     def __init__(self, log_dir, run_name="default_run"):

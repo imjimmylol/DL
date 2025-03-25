@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from urllib.request import urlretrieve
+import numpy.fft as fft
 
 class OxfordPetDataset(torch.utils.data.Dataset):
     def __init__(self, root, mode="train", transform=None):
@@ -117,6 +118,45 @@ class TqdmUpTo(tqdm):
             self.total = tsize
         self.update(b * bsize - self.n)
 
+class FFTOxfordPetDataset(OxfordPetDataset):
+    def __getitem__(self, *args, **kwargs):
+        sample = super().__getitem__(*args, **kwargs)
+
+        # Resize
+        image = np.array(Image.fromarray(sample["image"]).resize((256, 256), Image.BILINEAR))
+        mask = np.array(Image.fromarray(sample["mask"]).resize((256, 256), Image.NEAREST))
+        trimap = np.array(Image.fromarray(sample["trimap"]).resize((256, 256), Image.NEAREST))
+
+        # --- Apply FFT to image (per channel) ---
+        fft_channels = []
+        for i in range(3):  # RGB
+            img_channel = image[:, :, i]
+            f = fft.fft2(img_channel)
+            fshift = fft.fftshift(f)
+            magnitude_spectrum = 20 * np.log(np.abs(fshift) + 1e-8)  # add epsilon to avoid log(0)
+            # Normalize to [0, 255]
+            magnitude_spectrum = (magnitude_spectrum - magnitude_spectrum.min()) / (magnitude_spectrum.max() - magnitude_spectrum.min())
+            fft_channels.append(magnitude_spectrum)
+
+        # Combine to get average magnitude spectrum
+        fft_mag = np.mean(fft_channels, axis=0)  # shape: (256, 256)
+
+        # Stack FFT magnitude as an additional channel to image
+        image = image.astype(np.float32)
+        fft_mag = (fft_mag * 255).astype(np.float32)
+        image = np.dstack([image, fft_mag])  # shape: (256, 256, 4)
+
+        # Store back
+        sample["image"] = image
+        sample["mask"] = mask
+        sample["trimap"] = trimap
+
+        # Apply transform (ToTensor expects shape: HWC)
+        if self.transform is not None:
+            sample = self.transform(**sample)
+
+        return sample
+
 
 def download_url(url, filepath):
     directory = os.path.dirname(os.path.abspath(filepath))
@@ -154,6 +194,9 @@ def load_dataset(data_path, mode, batch_size=32, shuffle=True, num_workers=4, tr
     )
     
     return dataloader
+
+
+
 
 
 # -------------------------------------------------
@@ -203,3 +246,13 @@ class ToTensor:
         sample["trimap"] = torch.from_numpy(sample["trimap"].copy()).float()
         return sample
 
+class ToTensor4C:
+    def __call__(self, **sample):
+        image = sample["image"]
+        if image.ndim == 3 and image.shape[2] == 4:  # RGB + FFT
+            sample["image"] = torch.from_numpy(image.copy()).float().permute(2, 0, 1)  # 4x256x256
+        else:
+            sample["image"] = torch.from_numpy(image.copy()).float().permute(2, 0, 1)  # 3x256x256
+        sample["mask"] = torch.from_numpy(sample["mask"].copy()).float()
+        sample["trimap"] = torch.from_numpy(sample["trimap"].copy()).float()
+        return sample

@@ -16,22 +16,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    # # With transform 
-    # train_transform = Compose([
-    # RandomHorizontalFlip(p=0.5),
-    # RandomRotation90(),
-    # MinMaxNormalization(),
-    # ToTensor(),
-    # ])
+    # With transform 
+    train_transform = Compose([
+    RandomHorizontalFlip(p=0.5),
+    RandomRotation90(),
+    MinMaxNormalization(),
+    ToTensor(),
+    ])
 
-    # # For validation or testing, a simpler pipeline (only normalization and conversion to tensor) can be used:
-    # val_transform = Compose([
-    #     MinMaxNormalization(),
-    #     ToTensor()
-    # ])
+    # For validation or testing, a simpler pipeline (only normalization and conversion to tensor) can be used:
+    val_transform = Compose([
+        MinMaxNormalization(),
+        ToTensor()
+    ])
 
 
-    # train(args, train_transform=train_transform,
-    #       valid_transform=val_transform)  # Call the train function
+    train(args, train_transform=train_transform,
+          valid_transform=val_transform)  # Call the train function
 
-    train(args)
+    # train(args)

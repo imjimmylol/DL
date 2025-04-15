@@ -8,6 +8,7 @@
 [Lec 4 Introduction RL_0320](https://www.youtube.com/live/a7JJCNDHcH8)<br>
 [Lec_8_RL2_0410](https://www.youtube.com/live/nNdsvX3fkqA)<br>
 
+[Led_5_Transformer](https://www.youtube.com/live/7sQ9qJ_gm48)<br>
 [Lec_5_RNN_0325](https://www.youtube.com/live/tWojfa7ox-A)<br>
 
 [Lec_6_Linear_Factor_model_VAE_0327](https://www.youtube.com/live/tWojfa7ox-A)<br>

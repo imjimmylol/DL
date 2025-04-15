@@ -5,5 +5,14 @@
 
 [Lce 3 CNN](https://www.youtube.com/live/3Nc9u3ODzlI)
 
+[Lec 4 Introduction RL_0320](https://www.youtube.com/live/a7JJCNDHcH8)
+[Lec_8_RL2_0410](https://www.youtube.com/live/nNdsvX3fkqA)
+
+[Lec_5_RNN_0325](https://www.youtube.com/live/tWojfa7ox-A)
+
+[Lec_6_Linear_Factor_model_VAE_0327](https://www.youtube.com/live/tWojfa7ox-A)
+[Lec 7_AutoEncoder_0408](https://www.youtube.com/live/4xZScKeXBFg)
+
+
 # Lab Video Link
 [lab 1 BackProp](https://www.youtube.com/live/nmSqjkN_KUU)

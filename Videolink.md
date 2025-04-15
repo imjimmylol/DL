@@ -11,7 +11,7 @@
 [Led_5_Transformer](https://www.youtube.com/live/7sQ9qJ_gm48)<br>
 [Lec_5_RNN_0325](https://www.youtube.com/live/tWojfa7ox-A)<br>
 
-[Lec_6_Linear_Factor_model_VAE_0327](https://www.youtube.com/live/tWojfa7ox-A)<br>
+[Lec_6_Linear_Factor_model_VAE_0327](https://www.youtube.com/live/IkSRk-qU9Hk)<br>
 [Lec 7_AutoEncoder_0408](https://www.youtube.com/live/4xZScKeXBFg)<br>
 
 

@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_schedular", type=bool, default=False)
     args = parser.parse_args()
 
-
+    # Code Block for basic transform###################################################################################
     # With transform 
     train_transform = Compose([
     RandomHorizontalFlip(p=0.5),
@@ -33,5 +33,32 @@ if __name__ == "__main__":
 
     train(args, train_transform=train_transform,
           valid_transform=val_transform)  # Call the train function
+    ##################################################################################################################
 
+
+    # Code Block wo transform#########################################################################################
     # train(args)
+    ##################################################################################################################
+
+
+    # Code Block w fft################################################################################################
+
+#     train_transform = Compose([
+#     # RandomHorizontalFlip(p=0.5),
+#     # RandomRotation90(),
+#     MinMaxNormalization(),
+#     AddFFTChannel(),   # <-- 加在 normalization 後
+#     # CheckImageShape(),
+#     ToTensor4C(),
+#     ])
+
+#     val_transform = Compose([
+#     MinMaxNormalization(),
+#     AddFFTChannel(),   # <-- 加在 normalization 後
+#     # CheckImageShape(),
+#     ToTensor4C(),
+#     ])
+
+#     train(args, train_transform=train_transform,
+#           valid_transform=val_transform)
+    ##################################################################################################################

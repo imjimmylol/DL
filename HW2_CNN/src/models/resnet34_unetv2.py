@@ -174,7 +174,7 @@ class ResUnet_CBAM(nn.Module):
                                       nn.Conv2d(filters[0], filters[1], kernel_size=1, bias=False),
                                       nn.BatchNorm2d(filters[1])
                                   ))
-        # self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Block 3
         self.enc3 = ResidualBlock(filters[1], filters[2],
@@ -182,7 +182,7 @@ class ResUnet_CBAM(nn.Module):
                                       nn.Conv2d(filters[1], filters[2], kernel_size=1, bias=False),
                                       nn.BatchNorm2d(filters[2])
                                   ))
-        # self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Block 4 (bottom)
         self.enc4 = ResidualBlock(filters[2], filters[3],
@@ -203,15 +203,15 @@ class ResUnet_CBAM(nn.Module):
         # ---- Encoder ----
         x1 = self.initial(x)   # (B, 64, H, W)
         e1 = self.enc1(x1)     # (B, 64, H, W)
-        # p1 = self.pool1(e1)    # (B, 64, H/2, W/2)
+        p1 = self.pool1(e1)    # (B, 64, H/2, W/2)
 
-        e2 = self.enc2(e1)     # (B, 128, H/2, W/2)
-        # p2 = self.pool2(e2)    # (B, 128, H/4, W/4)
+        e2 = self.enc2(p1)     # (B, 128, H/2, W/2)
+        p2 = self.pool2(e2)    # (B, 128, H/4, W/4)
 
-        e3 = self.enc3(e2)     # (B, 256, H/4, W/4)
-        # p3 = self.pool3(e3)    # (B, 256, H/8, W/8)
+        e3 = self.enc3(p2)     # (B, 256, H/4, W/4)
+        p3 = self.pool3(e3)    # (B, 256, H/8, W/8)
 
-        e4 = self.enc4(e3)     # (B, 512, H/8, W/8)
+        e4 = self.enc4(p3)     # (B, 512, H/8, W/8)
 
         # ---- Decoder ----
         d3 = self.up3(e4, e3)  # (B, 256, H/4, W/4)

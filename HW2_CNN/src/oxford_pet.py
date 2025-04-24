@@ -256,3 +256,33 @@ class ToTensor4C:
         sample["mask"] = torch.from_numpy(sample["mask"].copy()).float()
         sample["trimap"] = torch.from_numpy(sample["trimap"].copy()).float()
         return sample
+
+class AddFFTChannel:
+    def __call__(self, **sample):
+        image = sample["image"]  # shape: (H, W, 3)
+
+        fft_channels = []
+        for i in range(3):
+            img_channel = image[:, :, i]
+            f = np.fft.fft2(img_channel)
+            fshift = np.fft.fftshift(f)
+            magnitude_spectrum = 20 * np.log(np.abs(fshift) + 1e-8)
+            magnitude_spectrum = (magnitude_spectrum - magnitude_spectrum.min()) / (magnitude_spectrum.max() - magnitude_spectrum.min())
+            fft_channels.append(magnitude_spectrum)
+
+        # Combine all three channels into one (or you can choose to keep all 3 separately)
+        fft_mag = np.mean(fft_channels, axis=0)
+        fft_mag = (fft_mag * 255).astype(np.float32)
+
+        # Append as a 4th channel
+        image = image.astype(np.float32)
+        image = np.dstack([image, fft_mag])  # shape: (H, W, 4)
+
+        sample["image"] = image
+        return sample
+
+
+class CheckImageShape:
+    def __call__(self, **sample):
+        print("Current image shape:", sample["image"].shape)
+        return sample

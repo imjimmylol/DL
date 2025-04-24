@@ -19,9 +19,10 @@ def train(args, train_transform=None, valid_transform=None):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # model = Unet(n_channels=3, n_classes=1).to(device)
-    # model = ResUnet_CBAM(in_channels=3, out_channels=1).to(device)
-    model = ResNetUNet(n_classes=1).to(device)
+    # model = Unet(n_channels=3, n_classes=1).to(device) # Unet w and w/o transform
+    model = ResUnet_CBAM(in_channels=3, out_channels=1).to(device) # ResUnet_CBAM w and w/o transform
+    # model = ResNetUNet(in_channels=3, n_classes=1).to(device) # ResNetUnet w and w/o transform 
+    # model = ResNetUNet(in_channels=4, n_classes=1).to(device) # 4th channel for FFT
 
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -64,11 +65,11 @@ def train(args, train_transform=None, valid_transform=None):
             for batch in pbar:
                 inputs = batch["image"].float().to(device)
                 targets = batch["mask"].float().to(device)
-
+            
                 optimizer.zero_grad()
                 if targets.dim() == 3:
                     targets = targets.unsqueeze(1)
-
+                # print(inputs.shape)
                 outputs = model(inputs)
                 outputs_resized = F.interpolate(outputs, size=(256, 256), mode='bilinear', align_corners=False)
                 outputs_prob = torch.sigmoid(outputs_resized)

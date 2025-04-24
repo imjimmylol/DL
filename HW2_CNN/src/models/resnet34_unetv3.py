@@ -43,13 +43,13 @@ def make_layer(in_channels, out_channels, blocks, stride=1):
 
 # Encoder with ResNet-34 style
 class ResNetEncoder(nn.Module):
-    def __init__(self):
+    def __init__(self, in_channels):
         super().__init__()
         self.initial = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
+            nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(3, stride=2, padding=1)
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
         self.layer1 = make_layer(64, 64, blocks=3)
         self.layer2 = make_layer(64, 128, blocks=4, stride=2)
@@ -97,16 +97,17 @@ class DecoderBlock(nn.Module):
 
 # Full U-Net with ResNet-34 Encoder
 class ResNetUNet(nn.Module):
-    def __init__(self, n_classes):
+    def __init__(self, in_channels, n_classes):
         super().__init__()
-        self.encoder = ResNetEncoder()
+        self.encoder = ResNetEncoder(in_channels=in_channels)
 
         # Decoder
         self.decoder4 = DecoderBlock(512, 256, 256)
         self.decoder3 = DecoderBlock(256, 128, 128)
         self.decoder2 = DecoderBlock(128, 64, 64)
         # self.decoder1 = DecoderBlock(64, 64, 32)
-        self.decoder1 = DecoderBlock(64, 3, 32)
+        # self.decoder1 = DecoderBlock(64, 3, 32)
+        self.decoder1 = DecoderBlock(64, in_channels, 32)
 
         self.final_conv = nn.Conv2d(32, n_classes, kernel_size=1)
 

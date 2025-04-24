@@ -62,7 +62,7 @@ def main():
 
     # --- Model Paths ---
     # Uncomment and set the appropriate checkpoint paths as needed:
-    resunet_ckpt = "C:/Users/daikon/jimmy/DL/HW2_CNN/runs/checkpoints/RESUME_resu_w_basic_trans_addschedular/best_checkpoint.pth"
+    resunet_ckpt = "C:/Users/daikon/jimmy/DL/HW2_CNN/runs/checkpoints/laset_try_RESunetAttention_basic_Trans_NFFT_w_schedu/best_checkpoint.pth"
     # unet_ckpt = "path/to/unet_checkpoint.pth"
     unet_ckpt = "C:/Users/daikon/jimmy/DL/HW2_CNN/runs/checkpoints/RESUME_Unet_wo_trans2/best_checkpoint.pth"
 

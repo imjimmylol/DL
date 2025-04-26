@@ -4,3 +4,8 @@
 \data
 \runs
 \saved_models
+\wandb
+\results
+\dqn_vidoes
+\eval_videos
+\output

@@ -16,8 +16,14 @@ from collections import deque
 import wandb
 import argparse
 import time
+import yaml
+from types import SimpleNamespace
+import wandb
 
-gym.register_envs(ale_py)
+def load_config(path="config.yaml"):
+    with open(path, 'r') as f:
+        cfg = yaml.safe_load(f)
+    return SimpleNamespace(**cfg)
 
 
 def init_weights(m):
@@ -74,36 +80,6 @@ class DQN(nn.Module):
 #         frame = self.preprocess(obs)
 #         self.frames.append(frame)
 #         return np.stack(self.frames, axis=0)
-
-
-class PrioritizedReplayBuffer:
-    """
-        Prioritizing the samples in the replay memory by the Bellman error
-        See the paper (Schaul et al., 2016) at https://arxiv.org/abs/1511.05952
-    """ 
-    def __init__(self, capacity, alpha=0.6, beta=0.4):
-        self.capacity = capacity
-        self.alpha = alpha
-        self.beta = beta
-        self.buffer = []
-        self.priorities = np.zeros((capacity,), dtype=np.float32)
-        self.pos = 0
-
-    def add(self, transition, error):
-        ########## YOUR CODE HERE (for Task 3) ########## 
-                    
-        ########## END OF YOUR CODE (for Task 3) ########## 
-        return 
-    def sample(self, batch_size):
-        ########## YOUR CODE HERE (for Task 3) ########## 
-                    
-        ########## END OF YOUR CODE (for Task 3) ########## 
-        return
-    def update_priorities(self, indices, errors):
-        ########## YOUR CODE HERE (for Task 3) ########## 
-                    
-        ########## END OF YOUR CODE (for Task 3) ########## 
-        return
         
 
 class DQNAgent:
@@ -278,8 +254,6 @@ class DQNAgent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-
-        
         ########## END OF YOUR CODE ##########  
 
         if self.train_count % self.target_update_frequency == 0:
@@ -290,23 +264,32 @@ class DQNAgent:
         #    print(f"[Train #{self.train_count}] Loss: {loss.item():.4f} Q mean: {q_values.mean().item():.3f} std: {q_values.std().item():.3f}")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--save-dir", type=str, default="./results")
-    parser.add_argument("--wandb-run-name", type=str, default="cartpole-run")
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--memory_size", type=int, default=100000)
-    parser.add_argument("--lr", type=float, default=0.0001)
-    parser.add_argument("--discount-factor", type=float, default=0.99)
-    parser.add_argument("--epsilon-start", type=float, default=1.0)
-    parser.add_argument("--epsilon-decay", type=float, default=0.999999)
-    parser.add_argument("--epsilon-min", type=float, default=0.05)
-    parser.add_argument("--target-update-frequency", type=int, default=1000)
-    parser.add_argument("--replay-start-size", type=int, default=50000)
-    parser.add_argument("--max-episode-steps", type=int, default=10000)
-    parser.add_argument("--train-per-step", type=int, default=1)
-    args = parser.parse_args()
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("--save-dir", type=str, default="./results")
+#     parser.add_argument("--wandb-run-name", type=str, default="cartpole-run")
+#     parser.add_argument("--batch-size", type=int, default=32)
+#     parser.add_argument("--memory_size", type=int, default=100000)
+#     parser.add_argument("--lr", type=float, default=0.001)
+#     parser.add_argument("--discount-factor", type=float, default=0.99)
+#     parser.add_argument("--epsilon-start", type=float, default=1.0)
+#     parser.add_argument("--epsilon-decay", type=float, default=0.995)
+#     parser.add_argument("--epsilon-min", type=float, default=0.01)
+#     parser.add_argument("--target-update-frequency", type=int, default=100)
+#     parser.add_argument("--replay-start-size", type=int, default=50000)
+#     parser.add_argument("--max-episode-steps", type=int, default=10000)
+#     parser.add_argument("--train-per-step", type=int, default=1)
+#     args = parser.parse_args()
 
-    wandb.init(project="DLP-Lab5-DQN-CartPole", name=args.wandb_run_name, save_code=True)
-    agent = DQNAgent(args=args)
-    agent.run()
+#     wandb.init(project="DLP-Lab5-DQN-CartPole", name=args.wandb_run_name, save_code=True)
+#     agent = DQNAgent(args=args)
+#     agent.run(episodes=1000)
+
+
+if __name__ == "__main__":
+    config = load_config("./trainingcfg/task1.yaml")
+
+    wandb.init(project="DLP-Lab5-DQN-CartPole", name=config.wandb_run_name, save_code=True)
+
+    agent = DQNAgent(args=config)
+    agent.run(episodes=5000)

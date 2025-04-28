@@ -287,9 +287,9 @@ class DQNAgent:
 
 
 if __name__ == "__main__":
-    config = load_config("./trainingcfg/task1.yaml")
+    config = load_config("./trainingcfg/task2.yaml")
 
-    wandb.init(project="DLP-Lab5-DQN-CartPole", name=config.wandb_run_name, save_code=True)
+    wandb.init(project="DLP-Lab5-DQN-pong", name=config.wandb_run_name, save_code=True)
 
     agent = DQNAgent(args=config)
     agent.run(episodes=5000)

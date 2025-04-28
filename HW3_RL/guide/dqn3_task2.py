@@ -14,8 +14,8 @@ import ale_py
 import os
 from collections import deque
 import wandb
-import argparse
-import time
+import yaml
+from types import SimpleNamespace
 
 gym.register_envs(ale_py)
 
@@ -27,29 +27,23 @@ def init_weights(m):
             nn.init.constant_(m.bias, 0)
 
 class DQN(nn.Module):
-    """
-        Design the architecture of your deep Q network
-        - Input size is the same as the state dimension; the output size is the same as the number of actions
-        - Feel free to change the architecture (e.g. number of hidden layers and the width of each hidden layer) as you like
-        - Feel free to add any member variables/functions whenever needed
-    """
-    def __init__(self, state_dim, num_actions):
+    def __init__(self, input_channels, num_actions):
         super(DQN, self).__init__()
-        # An example: 
         self.network = nn.Sequential(
-           nn.Linear(state_dim, 64),
-           nn.ReLU(),
-           nn.Linear(64, 64),
-           nn.ReLU(),
-           nn.Linear(64, num_actions)
-        )       
-        ########## YOUR CODE HERE (5~10 lines) ##########
-
-        
-        ########## END OF YOUR CODE ##########
+            nn.Conv2d(input_channels, 32, kernel_size=8, stride=4),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(64 * 7 * 7, 512),
+            nn.ReLU(),
+            nn.Linear(512, num_actions)
+        )
 
     def forward(self, x):
-        return self.network(x)
+        return self.network(x / 255.0)
 
 
 class AtariPreprocessor:
@@ -60,10 +54,21 @@ class AtariPreprocessor:
         self.frame_stack = frame_stack
         self.frames = deque(maxlen=frame_stack)
 
+    # def preprocess(self, obs):
+    #     gray = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
+    #     resized = cv2.resize(gray, (84, 84), interpolation=cv2.INTER_AREA)
+    #     return resized
+
     def preprocess(self, obs):
-        gray = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
+        if len(obs.shape) == 3 and obs.shape[2] == 3:
+            # 如果是 RGB，就轉成灰階
+            gray = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
+        else:
+            # 如果已經是灰階（單通道），直接用
+            gray = obs
         resized = cv2.resize(gray, (84, 84), interpolation=cv2.INTER_AREA)
         return resized
+
 
     def reset(self, obs):
         frame = self.preprocess(obs)
@@ -111,15 +116,16 @@ class DQNAgent:
         self.env = gym.make(env_name, render_mode="rgb_array")
         self.test_env = gym.make(env_name, render_mode="rgb_array")
         self.num_actions = self.env.action_space.n
+        self.replay_buffer = deque(maxlen=args.memory_size)
         self.preprocessor = AtariPreprocessor()
-        self.state_dim = self.env.observation_space.shape[0] # add state dim
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("Using device:", self.device)
 
 
-        self.q_net = DQN(self.state_dim, self.num_actions).to(self.device)
+        self.q_net = DQN(input_channels=4, num_actions=self.num_actions).to(self.device)
         self.q_net.apply(init_weights)
-        self.target_net = DQN(self.state_dim, self.num_actions).to(self.device)
+        self.target_net = DQN(input_channels=4, num_actions=self.num_actions).to(self.device)
         self.target_net.load_state_dict(self.q_net.state_dict())
         self.optimizer = optim.Adam(self.q_net.parameters(), lr=args.lr)
 
@@ -131,7 +137,7 @@ class DQNAgent:
 
         self.env_count = 0
         self.train_count = 0
-        self.best_reward = 0  # Initilized to 0 for CartPole and to -21 for Pong
+        self.best_reward = -21  # Initilized to 0 for CartPole and to -21 for Pong
         self.max_episode_steps = args.max_episode_steps
         self.replay_start_size = args.replay_start_size
         self.target_update_frequency = args.target_update_frequency
@@ -162,7 +168,7 @@ class DQNAgent:
                 done = terminated or truncated
                 
                 next_state = self.preprocessor.step(next_obs)
-                self.memory.append((state, action, reward, next_state, done))
+                self.replay_buffer.append((state, action, reward, next_state, done))
 
                 for _ in range(self.train_per_step):
                     self.train()
@@ -225,6 +231,7 @@ class DQNAgent:
         while not done:
             state_tensor = torch.from_numpy(np.array(state)).float().unsqueeze(0).to(self.device)
             with torch.no_grad():
+                # print(state_tensor.shape)
                 action = self.q_net(state_tensor).argmax().item()
             next_obs, reward, terminated, truncated, _ = self.test_env.step(action)
             done = terminated or truncated
@@ -236,7 +243,7 @@ class DQNAgent:
 
     def train(self):
 
-        if len(self.memory) < self.replay_start_size:
+        if len(self.replay_buffer) < self.replay_start_size:
             return 
         
         # Decay function for epsilin-greedy exploration
@@ -246,8 +253,9 @@ class DQNAgent:
        
         ########## YOUR CODE HERE (<5 lines) ##########
         # Sample a mini-batch of (s,a,r,s',done) from the replay buffer
-        batch = self.memory.sample(self.batch_size)
+        batch = random.sample(self.replay_buffer, self.batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
+
       
             
         ########## END OF YOUR CODE ##########
@@ -260,15 +268,18 @@ class DQNAgent:
         rewards = torch.tensor(rewards, dtype=torch.float32).to(self.device)
         dones = torch.tensor(dones, dtype=torch.float32).to(self.device)
         q_values = self.q_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
-        next_actions = self.q_net(next_states).argmax(1).unsqueeze(1)
-        next_q_values = self.target_net(next_states).gather(1, next_actions)
-        expected_q_values = rewards + (1 - dones) * self.gamma * next_q_values
+        
         ########## YOUR CODE HERE (~10 lines) ##########
         # Implement the loss function of DQN and the gradient updates 
-        loss = nn.functional.mse_loss(q_values, expected_q_values.detach())
+        with torch.no_grad():
+            # print(next_states.shape)
+            next_q = self.target_net(next_states).max(1)[0]
+            target_q = rewards + self.gamma * next_q * (1 - dones)
+
+        loss = nn.MSELoss()(q_values, target_q)
         self.optimizer.zero_grad()
         loss.backward()
-        self.optimizer.step()    
+        self.optimizer.step()
         
       
         ########## END OF YOUR CODE ##########  
@@ -277,39 +288,39 @@ class DQNAgent:
             self.target_net.load_state_dict(self.q_net.state_dict())
 
         # NOTE: Enable this part if "loss" is defined
-        if self.train_count % 1000 == 0:
+        if self.train_count % 1000 == 0:  
            print(f"[Train #{self.train_count}] Loss: {loss.item():.4f} Q mean: {q_values.mean().item():.3f} std: {q_values.std().item():.3f}")
 
-class ReplayBuffer:
-    def __init__(self, capacity):
-        self.buffer = deque(maxlen=capacity)
-
-    def add(self, transition):
-        self.buffer.append(transition)
-
-    def sample(self, batch_size):
-        return random.sample(self.buffer, batch_size)
-
-    def __len__(self):
-        return len(self.buffer)
-    
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--save-dir", type=str, default="./results")
-    parser.add_argument("--wandb-run-name", type=str, default="cartpole-run")
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--memory-size", type=int, default=100000)
-    parser.add_argument("--lr", type=float, default=0.0001)
-    parser.add_argument("--discount-factor", type=float, default=0.99)
-    parser.add_argument("--epsilon-start", type=float, default=1.0)
-    parser.add_argument("--epsilon-decay", type=float, default=0.999999)
-    parser.add_argument("--epsilon-min", type=float, default=0.05)
-    parser.add_argument("--target-update-frequency", type=int, default=1000)
-    parser.add_argument("--replay-start-size", type=int, default=50000)
-    parser.add_argument("--max-episode-steps", type=int, default=10000)
-    parser.add_argument("--train-per-step", type=int, default=1)
-    args = parser.parse_args()
 
-    wandb.init(project="DLP-Lab5-DQN-CartPole", name=args.wandb_run_name, save_code=True)
-    agent = DQNAgent(args=args)
-    agent.run()
+    def load_config(path="config.yaml"):
+        with open(path, 'r') as f:
+            cfg = yaml.safe_load(f)
+        return SimpleNamespace(**cfg)
+
+    config = load_config("./trainingcfg/task2.yaml")
+
+    wandb.init(project="DLP-Lab5-DQN-pong", name=config.wandb_run_name, save_code=True)
+
+    agent = DQNAgent(args=config, env_name="ALE/Pong-v5")
+    agent.run(episodes=10000)
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("--save-dir", type=str, default="./results")
+#     parser.add_argument("--wandb-run-name", type=str, default="cartpole-run")
+#     parser.add_argument("--batch-size", type=int, default=32)
+#     parser.add_argument("--memory-size", type=int, default=100000)
+#     parser.add_argument("--lr", type=float, default=0.0001)
+#     parser.add_argument("--discount-factor", type=float, default=0.99)
+#     parser.add_argument("--epsilon-start", type=float, default=1.0)
+#     parser.add_argument("--epsilon-decay", type=float, default=0.999999)
+#     parser.add_argument("--epsilon-min", type=float, default=0.05)
+#     parser.add_argument("--target-update-frequency", type=int, default=1000)
+#     parser.add_argument("--replay-start-size", type=int, default=50000)
+#     parser.add_argument("--max-episode-steps", type=int, default=10000)
+#     parser.add_argument("--train-per-step", type=int, default=1)
+#     args = parser.parse_args()
+
+#     wandb.init(project="DLP-Lab5-DQN-CartPole", name=args.wandb_run_name, save_code=True)
+#     agent = DQNAgent(args=args)
+#     agent.run()

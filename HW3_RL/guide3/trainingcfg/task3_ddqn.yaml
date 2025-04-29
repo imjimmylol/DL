@@ -1,5 +1,5 @@
-save_dir: "./results/pong_attempt3"
-wandb_run_name: "pong-aggressive-1"
+save_dir: "./results/pong_task3_ddqn"
+wandb_run_name: "pong-ddqn"
 
 batch_size: 32        # normal, no need to go too small. 32 is a standard good balance
 memory_size: 500000   # enough but not too large, prioritize faster rotation
@@ -11,7 +11,7 @@ epsilon_start: 1.0
 epsilon_decay: 0.999995   # **much slower decay** (you need exploration longer in Pong)
 epsilon_min: 0.05         # slightly lower minimum epsilon for late exploitation
 
-target_update_frequency: 4000  # much **slower target net update** (stable targets are key)
+target_update_frequency: 5000  # much **slower target net update** (stable targets are key)
 
 replay_start_size: 50000  # **start training later**, let agent gather more experience first
 

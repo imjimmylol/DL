@@ -1,0 +1,35 @@
+# trainingcfg/task3_ddqn.yaml
+
+# output & logging
+save_dir: "./results/pong_task3_ddqn_prior"
+wandb_run_name: "pong-ddqn-prior"
+
+# replay & batch
+batch_size: 32
+memory_size: 500000       # buffer capacity
+
+# optimizer
+lr: 0.0000625             # 6.25e-5
+
+# RL hyper-params
+discount_factor: 0.99     # γ
+
+epsilon_start: 1.0
+epsilon_decay: 0.999995   # very slow decay
+epsilon_min: 0.05
+
+target_update_frequency: 5000
+replay_start_size: 50000
+
+max_episode_steps: 10000
+train_per_step: 1
+
+# Prioritized Experience Replay
+per_alpha: 0.6            # how much prioritization is used (0 = uniform, 1 = full)
+per_beta_start: 0.4       # initial β for importance-sampling
+per_beta_frames: 5000000  # anneal β→1 over this many env steps
+
+# training schedule
+total_steps: 5000000      # total env steps to run/train
+eval_frequency: 10000     # eval every N env steps
+eval_episodes: 10         # # of episodes per eval

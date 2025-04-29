@@ -1,0 +1,24 @@
+save_dir: "./results/ddqn_replay_cartpole_test"
+wandb_run_name: "ddqn_replay_cartpole_lower_test"
+
+batch_size: 32   # smaller batch for faster updates
+memory_size: 200000   # enough for diversity, smaller for faster sample rotation
+lr: 0.0001    # keep high learning rate
+
+discount_factor: 0.99  # no change, it's good
+
+epsilon_start: 1.0
+epsilon_decay: 0.995   # still fast but not brutally 0.8 (too jerky)
+epsilon_min: 0.1
+
+target_update_frequency: 100  # slightly slower, more stable (not 10)
+replay_start_size: 5000   # start training earlier (aggressive)
+
+max_episode_steps: 500   # full CartPole max episode (not artificially clipped)
+n_step: 3
+
+train_per_step: 1    # normal train per environment step, not 500!!
+
+total_steps: 200000
+eval_frequency: 2000   # evaluate more often
+eval_episodes: 5

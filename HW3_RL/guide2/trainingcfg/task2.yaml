@@ -1,0 +1,24 @@
+save_dir: "./results/ddqn_pong_fast_test"
+wandb_run_name: "ddqn_pong_fast_test"
+
+batch_size: 32             # smoother, more stable gradient estimates
+memory_size: 500000       # still plenty of coverage without wasting RAM
+lr: 0.00025               # larger step for faster initial learning
+
+discount_factor: 0.99     # long horizon remains important for Pong
+
+epsilon_start: 1.0
+epsilon_decay: 0.99998    # slower decay → keeps exploring into ~200K frames
+epsilon_min: 0.01         # small floor to avoid getting stuck
+
+target_update_frequency: 1000   # more frequent target syncs
+replay_start_size: 10000        # train from just 10K frames in
+
+max_episode_steps: 18000
+
+n_step: 3                # stronger multi-step returns
+train_per_step: 1        # 8 updates per new frame
+
+total_steps: 5000000    # you can still run to 10M frames
+eval_frequency: 50000    # evaluate every 50K frames
+eval_episodes: 10

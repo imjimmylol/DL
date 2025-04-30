@@ -151,9 +151,9 @@ agent.epsilon = 0
 # 4. 重新建立一個錄影片用的環境
 test_env = gym.make('CartPole-v1', render_mode='rgb_array', max_episode_steps=2000)
 test_env = RecordVideo(test_env, video_folder="./eval_videos", episode_trigger=lambda x: True)
-
+TOTAL_REWARDS = 0
 # 5. 錄三個 episode
-for episode in range(3):
+for episode in range(5):
     state = test_env.reset()[0]
     total_reward = 0
     steps = 0
@@ -171,6 +171,7 @@ for episode in range(3):
             break
 
     print(f"Test Episode: {episode}, Reward: {total_reward}")
-
+    TOTAL_REWARDS += total_reward
+print(f"avg total rewards : {round(TOTAL_REWARDS/5, 4)}")
 test_env.close()
 print("錄製完成，影片保存在 ./eval_videos")

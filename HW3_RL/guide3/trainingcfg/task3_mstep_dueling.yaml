@@ -1,0 +1,17 @@
+save_dir: ./results/pong_task3_mstep_dueling
+wandb_run_name: pong-mstep-dueling
+batch_size: 32
+memory_size: 500000
+lr: 6.25e-05
+discount_factor: 0.99
+epsilon_start: 1.0
+epsilon_decay: 0.999995
+epsilon_min: 0.05
+target_update_frequency: 5000
+replay_start_size: 50000
+max_episode_steps: 10000
+train_per_step: 1
+total_steps: 5000000
+eval_frequency: 10000
+eval_episodes: 10
+n_step: 3

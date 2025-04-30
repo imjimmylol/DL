@@ -1,0 +1,33 @@
+# output & logging
+save_dir: "./results/pong_task3_mstep_prior_dueling_hyper2"
+wandb_run_name: "pong-task3_mstep_prior_dueling_hyper2"
+
+# replay & batch
+batch_size: 32
+memory_size: 500000
+
+# optimizer
+lr: 0.00008             # ↑ from 6.25e-5 to speed up learning
+
+# RL hyper-params
+discount_factor: 0.99
+
+epsilon_start: 1.0
+epsilon_decay: 0.99999   # slightly faster decay → earlier exploitation
+epsilon_min: 0.05
+
+target_update_frequency: 5000
+replay_start_size: 50000
+train_per_step: 1
+
+max_episode_steps: 10000
+
+# Prioritized Experience Replay
+per_alpha: 0.5            # ↓ less aggressive prioritization
+per_beta_start: 0.6       # ↑ start with stronger importance sampling correction
+per_beta_frames: 1000000  # faster annealing of β → 1
+
+# schedule
+total_steps: 5000000
+eval_frequency: 10000
+eval_episodes: 10

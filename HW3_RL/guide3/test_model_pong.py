@@ -10,25 +10,39 @@ import ale_py
 import os
 from collections import deque
 import argparse
-
 class DQN(nn.Module):
     def __init__(self, input_channels, num_actions):
         super(DQN, self).__init__()
-        self.network = nn.Sequential(
+        self.feature = nn.Sequential(
             nn.Conv2d(input_channels, 32, kernel_size=8, stride=4),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.Flatten(),
-            nn.Linear(64 * 7 * 7, 512),
+            nn.Flatten()
+        )
+        dummy = torch.zeros(1, input_channels, 84, 84)
+        n_flatten = self.feature(dummy).shape[1]
+
+        self.value_stream = nn.Sequential(
+            nn.Linear(n_flatten, 512),
+            nn.ReLU(),
+            nn.Linear(512, 1)
+        )
+        self.advantage_stream = nn.Sequential(
+            nn.Linear(n_flatten, 512),
             nn.ReLU(),
             nn.Linear(512, num_actions)
         )
 
     def forward(self, x):
-        return self.network(x / 255.0)
+        x = x / 255.0
+        feats = self.feature(x)
+        V = self.value_stream(feats)                    # shape (batch, 1)
+        A = self.advantage_stream(feats)                # shape (batch, num_actions)
+        Q = V + A - A.mean(dim=1, keepdim=True)
+        return Q
 class AtariPreprocessor:
     def __init__(self, frame_stack=4):
         self.frame_stack = frame_stack

@@ -248,7 +248,7 @@ class DQNAgent:
             next_q = self.target_net(next_states).max(1)[0]
             target_q = rewards + self.gamma * next_q * (1 - dones)
 
-        loss = nn.MSELoss()(q_values, target_q)
+        loss = nn.MSELoss()(q_values, target_q) # Bellamn error
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

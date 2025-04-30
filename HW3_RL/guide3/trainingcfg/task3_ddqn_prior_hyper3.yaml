@@ -1,0 +1,27 @@
+save_dir: "./results/pong_task3_ddqn_prior_v3"
+wandb_run_name: "pong-ddqn-prior-v3"
+
+batch_size: 32
+memory_size: 500000
+
+lr: 0.00005
+
+discount_factor: 0.99
+
+epsilon_start: 1.0
+epsilon_decay: 0.999996  # a hair faster decay
+epsilon_min: 0.05
+
+target_update_frequency: 2500   # update target more often
+replay_start_size: 50000
+train_per_step: 1
+
+max_episode_steps: 10000
+
+per_alpha: 0.7            # stronger prioritization
+per_beta_start: 0.5
+per_beta_frames: 3000000  # slower β annealing
+
+total_steps: 5000000
+eval_frequency: 10000
+eval_episodes: 10

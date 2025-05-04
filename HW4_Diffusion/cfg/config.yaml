@@ -1,0 +1,21 @@
+# config.yaml
+data_dir: "./iclevr"
+index_file: "./file/train.json"
+
+# training
+epochs: 50
+batch_size: 4
+lr: 2.5e-5
+T: 1000
+device: "cuda"       # or "cpu"
+checkpoint_dir: "./checkpoints"
+checkpoint_interval: 5   # save every N epochs
+resume_checkpoint: null   # or path/to/ckpt.pth
+
+# wandb
+project_name: "ddpm-clevr"
+
+# model
+in_channels: 3
+base_channels: 128
+time_emb_dim: 128

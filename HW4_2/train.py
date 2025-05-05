@@ -8,12 +8,12 @@ if __name__ == "__main__":
     label_map_path = "label_map.json"
     ckpt_dir       = "./checkpoints_hq/"
     epochs         = 500
-    batch_size     = 8
+    batch_size     = 4
     lr             = 5e-5
-    img_size       = 128
+    img_size       = 64
     timesteps      = 4000
     cond_emb_dim   = 512
-    base_channels  = 128
+    base_channels  = 64
 
     trainer = DiffusionTrainer(
         train_json,

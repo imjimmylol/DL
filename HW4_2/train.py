@@ -110,7 +110,11 @@ class DiffusionTrainer:
             avg_loss = total_loss / len(self.loader)
             tqdm.write(f"Epoch {epoch}/{self.epochs} - Loss: {avg_loss:.4f}")
             # save checkpoint
-            torch.save(self.model.state_dict(), os.path.join(self.ckpt_dir, f"model_epoch{epoch}.pth"))
+            torch.save({
+                    "model_state_dict": self.model.state_dict(),
+                    "embed_state_dict": self.cond_emb.state_dict()
+                }, os.path.join(self.ckpt_dir, f"checkpoint_epoch{epoch}.pt"))
+
 
 
 if __name__ == "__main__":

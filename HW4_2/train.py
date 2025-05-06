@@ -1,7 +1,13 @@
+import os
+import argparse
 from src.trainer import DiffusionTrainer
 
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--resume_from", type=str, default=None,
+                        help="Path to a .pt checkpoint to resume from")
+    args = parser.parse_args()
+
     # Paths & hyperparameters
     train_json     = "./file/train.json"
     image_dir      = "./iclevr"
@@ -28,4 +34,6 @@ if __name__ == "__main__":
         cond_emb_dim,
         base_channels
     )
-    trainer.train()
+
+    # If you supplied --resume_from, pass it here; otherwise starts fresh
+    trainer.train(resume_from=args.resume_from)

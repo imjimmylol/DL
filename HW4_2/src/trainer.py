@@ -120,10 +120,33 @@ class DiffusionTrainer:
             "sched": self.scheduler.state_dict()
         }, path)
 
-    def train(self):
-        mse = nn.MSELoss()
+    def load_checkpoint(self, checkpoint_path):
+        """
+        Load model, optimizer, scheduler, and state for resuming training.
+        Returns the next epoch to start from.
+        """
+        ckpt = torch.load(checkpoint_path, map_location=self.device)
+        self.model.load_state_dict(ckpt['model'])
+        self.ema_model.load_state_dict(ckpt['ema_model'])
+        self.cond_emb.load_state_dict(ckpt['embed'])
+        self.opt.load_state_dict(ckpt['opt'])
+        self.scheduler.load_state_dict(ckpt['sched'])
+        self.global_step = ckpt['global_step']
+        start_epoch = ckpt['epoch'] + 1
+        print(f"Resumed from {checkpoint_path}. Starting at epoch {start_epoch}, global_step {self.global_step}.")
+        return start_epoch
 
-        for epoch in trange(1, self.epochs + 1, desc="Epochs", unit="epoch"):
+    def train(self, resume_from=None):
+        """
+        Train the model. If `resume_from` is provided, load checkpoint and resume.
+        """
+        # Determine starting epoch
+        start_epoch = 1
+        if resume_from:
+            start_epoch = self.load_checkpoint(resume_from)
+
+        mse = nn.MSELoss()
+        for epoch in trange(start_epoch, self.epochs + 1, desc="Epochs", unit="epoch"):
             self.model.train()
             total_loss = 0.0
 
@@ -148,15 +171,14 @@ class DiffusionTrainer:
                 sqrt_1_acp = (1 - self.alphas_cumprod[t]).sqrt().view(B,1,1,1)
                 xt = sqrt_acp * imgs + sqrt_1_acp * noise
 
-                # Predict
+                # Predict & compute loss
                 pred = self.model(xt, t, c_emb)
                 orig_loss = mse(pred, noise)
                 loss = orig_loss / self.accumulate_steps
                 loss.backward()
 
-                # Gradient accumulation / optimizer step
+                # Gradient accumulation
                 if (step + 1) % self.accumulate_steps == 0:
-                    # Clip gradients
                     nn.utils.clip_grad_norm_(
                         list(self.model.parameters()) + list(self.cond_emb.parameters()),
                         max_norm=1.0

@@ -72,7 +72,7 @@ def sample_ddpm_batch(model, embed, label_map, conditions, out_dir,
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--checkpoint", default="./checkpoints_hq/hq_ckpt_epoch60.pt",
+    parser.add_argument("--checkpoint", default="./checkpoints_hq/hq_ckpt_epoch307.pt",
                         help="Path to trained checkpoint")
     parser.add_argument("--label_map", default="label_map.json",
                         help="Path to label_map.json")
